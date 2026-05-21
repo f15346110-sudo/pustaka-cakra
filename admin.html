@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Pustaka Cakra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="admin">
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Pustaka Cakra</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">Beranda</a>
+                <a href="katalog.html" class="nav-link">Katalog</a>
+                <a href="admin.html" class="nav-link active">Admin</a>
+                <div id="navAuth"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Login -->
+    <section class="auth-section" id="adminLoginSection">
+        <div class="auth-card" data-reveal>
+            <div class="auth-header">
+                <div class="auth-icon" style="background:rgba(45,74,62,0.1);color:var(--primary);">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2>Admin Login</h2>
+                <p>Masuk sebagai administrator</p>
+            </div>
+            <form id="adminLoginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="adminUser">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <input type="text" id="adminUser" placeholder="Username admin" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="adminPass">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="adminPass" placeholder="Password admin" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" onclick="sfx.click()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Admin
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section class="section" id="adminDashboard" style="display:none;">
+        <div class="container">
+            <!-- Stats -->
+            <div class="admin-stats" id="adminStats"></div>
+
+            <!-- Chart Section -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-chart-line"></i> Statistik Peminjaman per Kategori</h3>
+                </div>
+                <div style="position:relative; height:300px; width:100%;">
+                    <canvas id="borrowChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Request Section -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-bell"></i> Permintaan Peminjaman & Pengembalian</h3>
+                    <span class="badge badge-warning" id="requestBadge">0</span>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="adminRequestTable">
+                        <thead>
+                            <tr>
+                                <th>Peminjam</th>
+                                <th>Buku</th>
+                                <th>Tanggal Request</th>
+                                <th>Tipe</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminRequestBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Book Form -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-plus-circle"></i> Tambah Buku Baru</h3>
+                </div>
+                <form id="addBookForm" class="admin-form">
+                    <div class="admin-form-grid">
+                        <div class="form-group">
+                            <label for="addTitle">Judul Buku</label>
+                            <input type="text" id="addTitle" placeholder="Masukkan judul" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addAuthor">Penulis</label>
+                            <input type="text" id="addAuthor" placeholder="Nama penulis" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addYear">Tahun Terbit</label>
+                            <input type="number" id="addYear" placeholder="2024" required min="1" max="2025">
+                        </div>
+                        <div class="form-group">
+                            <label for="addCategory">Kategori</label>
+                            <select id="addCategory" required>
+                                <option value="">Pilih kategori</option>
+                                <option value="Fiksi">Fiksi</option>
+                                <option value="Sains">Sains</option>
+                                <option value="Sejarah">Sejarah</option>
+                                <option value="Teknologi">Teknologi</option>
+                                <option value="Filsafat">Filsafat</option>
+                                <option value="Sastra">Sastra</option>
+                                <option value="Psikologi">Psikologi</option>
+                                <option value="Bisnis">Bisnis</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="addDesc">Sinopsis / Deskripsi</label>
+                        <textarea id="addDesc" rows="3" placeholder="Tulis sinopsis buku secara singkat..." required style="width:100%;padding:0.75rem 0.875rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.9rem;background:var(--bg);color:var(--text);resize:vertical;transition: all var(--transition);"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label for="addCoverUrl">URL Gambar Cover (Opsional)</label>
+                        <input type="url" id="addCoverUrl" placeholder="https://contoh.com/gambar.jpg">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top:1.25rem;" onclick="sfx.click()">
+                        <i class="fa-solid fa-plus"></i> Tambah Buku
+                    </button>
+                </form>
+            </div>
+
+            <!-- Book Management -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-list"></i> Kelola Buku</h3>
+                    <span class="badge" id="totalBooksBadge">0 buku</span>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="adminBookTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Cover</th>
+                                <th>Judul</th>
+                                <th>Penulis</th>
+                                <th>Tahun</th>
+                                <th>Kategori</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminBookBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Peminjaman Aktif & Riwayat -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-hand-holding"></i> Data Peminjaman</h3>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="adminBorrowTable">
+                        <thead>
+                            <tr>
+                                <th>Peminjam</th>
+                                <th>Buku</th>
+                                <th>Tgl Pinjam</th>
+                                <th>Batas Kembali</th>
+                                <th>Status / Denda</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminBorrowBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Edit Book Modal -->
+    <div class="modal-overlay" id="editBookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Buku</h3>
+                <button class="modal-close" onclick="closeModal('editBookModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editBookForm" class="admin-form">
+                    <input type="hidden" id="editBookId">
+                    <div class="form-group">
+                        <label for="editTitle">Judul</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAuthor">Penulis</label>
+                        <input type="text" id="editAuthor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editYear">Tahun</label>
+                        <input type="number" id="editYear" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategory">Kategori</label>
+                        <select id="editCategory" required>
+                            <option value="Fiksi">Fiksi</option>
+                            <option value="Sains">Sains</option>
+                            <option value="Sejarah">Sejarah</option>
+                            <option value="Teknologi">Teknologi</option>
+                            <option value="Filsafat">Filsafat</option>
+                            <option value="Sastra">Sastra</option>
+                            <option value="Psikologi">Psikologi</option>
+                            <option value="Bisnis">Bisnis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDesc">Sinopsis / Deskripsi</label>
+                        <textarea id="editDesc" rows="3" required style="width:100%;padding:0.75rem 0.875rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.9rem;background:var(--bg);color:var(--text);resize:vertical;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCoverUrl">URL Gambar Cover</label>
+                        <input type="url" id="editCoverUrl" placeholder="https://contoh.com/gambar.jpg">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('editBookModal'); sfx.click();">Batal</button>
+                        <button type="submit" class="btn btn-primary" onclick="sfx.click()">
+                            <i class="fa-solid fa-save"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

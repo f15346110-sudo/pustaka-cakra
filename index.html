@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pustaka Cakra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Pustaka Cakra</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link active">Beranda</a>
+                <a href="katalog.html" class="nav-link">Katalog</a>
+                <div id="navAuth"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-bg"></div>
+        <div class="container hero-content">
+            <p class="hero-subtitle">Selamat Datang di</p>
+            <h1 class="hero-title">Pustaka Cakra</h1>
+            <p class="hero-desc">Jelajahi banyak koleksi buku dari berbagai genre dan penulis terkemuka dunia. Temukan pengetahuan baru di setiap halaman.</p>
+            <div class="hero-actions">
+                <a href="katalog.html" class="btn btn-primary btn-lg" onclick="sfx.click()">
+                    <i class="fa-solid fa-compass"></i> Jelajahi Katalog
+                </a>
+                <a href="#about" class="btn btn-outline btn-lg" onclick="sfx.click()">
+                    Pelajari Lebih Lanjut
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-num">50+</span>
+                    <span class="hero-stat-label">Koleksi Buku</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-num">8</span>
+                    <span class="hero-stat-label">Kategori</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-num">24/7</span>
+                    <span class="hero-stat-label">Akses Digital</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Banner Slider / Papan Iklan -->
+    <section class="banner-section" id="bannerSection">
+        <div class="container">
+            <div class="section-header" style="margin-bottom:1.5rem;">
+                <p class="section-label">Informasi & Promosi</p>
+                <h2 class="section-title">Berita Terkini</h2>
+            </div>
+            <div class="banner-slider" id="bannerSlider"></div>
+            <button class="banner-nav banner-prev" id="bannerPrev" aria-label="Slide Sebelumnya">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="banner-nav banner-next" id="bannerNext" aria-label="Slide Selanjutnya">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+            <div class="banner-dots" id="bannerDots"></div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section" id="about">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-label">Tentang Kami</p>
+                <h2 class="section-title">Membangun Budaya Membaca</h2>
+                <p class="section-desc">Pustaka Cakra adalah platform digital yang menyediakan akses mudah ke berbagai koleksi buku berkualitas. Kami percaya bahwa membaca adalah kunci untuk membuka cakrawala pengetahuan.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-reveal>
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-book"></i>
+                    </div>
+                    <h3>Koleksi Lengkap</h3>
+                    <p>Beragam buku dari fiksi hingga sains, tersedia untuk semua kalangan pembaca.</p>
+                </div>
+                <div class="feature-card" data-reveal>
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <h3>Akses Kapan Saja</h3>
+                    <p>Pinjam buku kapan saja dan di mana saja tanpa batasan waktu operasional.</p>
+                </div>
+                <div class="feature-card" data-reveal>
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3>Aman & Nyaman</h3>
+                    <p>Data peminjaman tercatat rapi dan aman. Kembalikan buku dengan mudah.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Books Section -->
+    <section class="section section-alt" id="popular">
+        <div class="container">
+            <div class="section-header">
+                <p class="section-label">Pilihan Terbaik</p>
+                <h2 class="section-title">Buku Populer</h2>
+                <p class="section-desc">Koleksi buku yang paling banyak diminati oleh para pembaca kami.</p>
+            </div>
+            <div class="books-grid" id="popularBooks"></div>
+            <div class="section-cta">
+                <a href="katalog.html" class="btn btn-primary" onclick="sfx.click()">
+                    Lihat Semua Katalog <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fa-solid fa-book-open"></i> Pustaka Cakra</h3>
+                    <p>Platform perpustakaan digital untuk semua. Membaca adalah jendela dunia.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Navigasi</h4>
+                    <a href="index.html">Beranda</a>
+                    <a href="katalog.html">Katalog</a>
+                    <a href="login.html">Masuk</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Kategori</h4>
+                    <a href="katalog.html?cat=Fiksi">Fiksi</a>
+                    <a href="katalog.html?cat=Sains">Sains</a>
+                    <a href="katalog.html?cat=Sejarah">Sejarah</a>
+                    <a href="katalog.html?cat=Teknologi">Teknologi</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Kontak</h4>
+                    <a href="#"><i class="fa-solid fa-envelope"></i> info@pustakacakra.id</a>
+                    <a href="#"><i class="fa-solid fa-phone"></i> (021) 1234-5678</a>
+                    <a href="#"><i class="fa-solid fa-location-dot"></i> Jakarta, Indonesia</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Pustaka Cakra. Hak cipta dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Riwayat Modal -->
+    <div class="modal-overlay" id="riwayatModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Peminjaman</h3>
+                <button class="modal-close" onclick="closeModal('riwayatModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body" id="riwayatBody"></div>
+        </div>
+    </div>
+
+    <!-- Book Detail Modal -->
+    <div class="modal-overlay" id="bookDetailModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="detailTitle">Detail Buku</h3>
+                <button class="modal-close" onclick="closeModal('bookDetailModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body" id="bookDetailBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Buku - Pustaka Cakra</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="katalog">
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Pustaka Cakra</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="nav-menu" id="navMenu">
+                <a href="index.html" class="nav-link">Beranda</a>
+                <a href="katalog.html" class="nav-link active">Katalog</a>
+                <div id="navAuth"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Katalog Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Katalog Buku</h1>
+            <p>Temukan buku favoritmu dari koleksi lengkap kami</p>
+        </div>
+    </section>
+
+    <!-- Search & Filter -->
+    <section class="section" style="padding-top:2rem;">
+        <div class="container">
+            <div class="filter-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Cari judul, penulis, atau kategori..." autocomplete="off">
+                </div>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="filterCategory">Kategori</label>
+                        <select id="filterCategory">
+                            <option value="">Semua</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterStatus">Status</label>
+                        <select id="filterStatus">
+                            <option value="">Semua</option>
+                            <option value="Tersedia">Tersedia</option>
+                            <option value="Dipinjam">Dipinjam</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="sortBy">Urutkan</label>
+                        <select id="sortBy">
+                            <option value="title-asc">Judul A-Z</option>
+                            <option value="title-desc">Judul Z-A</option>
+                            <option value="year-desc">Tahun Terbaru</option>
+                            <option value="year-asc">Tahun Terlama</option>
+                            <option value="populer-desc">Paling Populer</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jumlah hasil -->
+            <div class="results-info" id="resultsInfo"></div>
+
+            <!-- Grid Buku -->
+            <div class="books-grid" id="katalogBooks"></div>
+
+            <!-- Kosong -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <i class="fa-solid fa-book-open"></i>
+                <h3>Buku tidak ditemukan</h3>
+                <p>Coba ubah kata kunci atau filter pencarianmu.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 Pustaka Cakra. Hak cipta dilindungi.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Riwayat Modal -->
+    <div class="modal-overlay" id="riwayatModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Peminjaman</h3>
+                <button class="modal-close" onclick="closeModal('riwayatModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body" id="riwayatBody"></div>
+        </div>
+    </div>
+
+    <!-- Book Detail Modal -->
+    <div class="modal-overlay" id="bookDetailModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="detailTitle">Detail Buku</h3>
+                <button class="modal-close" onclick="closeModal('bookDetailModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body" id="bookDetailBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
