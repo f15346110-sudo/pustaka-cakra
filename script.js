@@ -2,6 +2,7 @@
    PUSTAKA CAKRA - MAIN SCRIPT
    + Rating, Denda Otomatis, Chart, 3D Reader
    + Banner Slider, Reviews, View Count
+   + Admin Reply Reviews, Monthly Chart
    ========================================== */
 
 // ==========================================
@@ -226,7 +227,7 @@ function renderStarRating(bookId) {
 }
 
 // ==========================================
-// VIEW COUNT SYSTEM (FITUR BARU)
+// VIEW COUNT SYSTEM
 // ==========================================
 function getViews() { return JSON.parse(localStorage.getItem('perpus_views')) || {}; }
 function saveViews(views) { localStorage.setItem('perpus_views', JSON.stringify(views)); }
@@ -239,11 +240,38 @@ function incrementView(bookId) {
 function getViewCount(bookId) { return getViews()[bookId] || 0; }
 
 // ==========================================
-// REVIEWS / ULASAN SYSTEM (FITUR BARU)
+// REVIEWS / ULASAN SYSTEM
+// + Admin Reply Support
 // ==========================================
-function getReviews() { return JSON.parse(localStorage.getItem('perpus_reviews')) || {}; }
+
+/* FIX: Auto-assign ID ke review lama yang belum punya ID */
+function getReviews() {
+    let reviews = JSON.parse(localStorage.getItem('perpus_reviews')) || {};
+    
+    // Migration: beri ID unik untuk review lama yang belum punya
+    let needsSave = false;
+    for (const bookId in reviews) {
+        reviews[bookId].forEach(r => {
+            if (!r.id) {
+                r.id = 'review_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                needsSave = true;
+            }
+            if (r.adminReply === undefined) {
+                r.adminReply = null;
+                needsSave = true;
+            }
+        });
+    }
+    if (needsSave) {
+        localStorage.setItem('perpus_reviews', JSON.stringify(reviews));
+    }
+    
+    return reviews;
+}
+
 function saveReviews(reviews) { localStorage.setItem('perpus_reviews', JSON.stringify(reviews)); }
 
+/* CHANGED: submitReview sekarang menyimpan id unik dan field adminReply */
 function submitReview(bookId) {
     const session = getSession();
     if (!session) { showToast('Silakan login untuk memberi ulasan', 'warning'); return; }
@@ -261,7 +289,17 @@ function submitReview(bookId) {
     if (!reviews[bookId]) reviews[bookId] = [];
 
     const existingIndex = reviews[bookId].findIndex(r => r.userId === session.userId);
-    const reviewObj = { userId: session.userId, userName: session.name, rating: rating, comment: comment, date: new Date().toLocaleDateString('id-ID') };
+
+    /* CHANGED: tambahkan id unik dan adminReply null */
+    const reviewObj = {
+        id: existingIndex >= 0 ? reviews[bookId][existingIndex].id : 'review_' + Date.now(),
+        userId: session.userId,
+        userName: session.name,
+        rating: rating,
+        comment: comment,
+        date: new Date().toLocaleDateString('id-ID'),
+        adminReply: existingIndex >= 0 ? (reviews[bookId][existingIndex].adminReply || null) : null
+    };
 
     if (existingIndex >= 0) {
         reviews[bookId][existingIndex] = reviewObj;
@@ -275,6 +313,7 @@ function submitReview(bookId) {
     showBookDetail(bookId); 
 }
 
+/* CHANGED: renderReviewsList sekarang menampilkan balasan admin */
 function renderReviewsList(bookId) {
     const reviews = getReviews()[bookId] || [];
     const session = getSession();
@@ -288,6 +327,7 @@ function renderReviewsList(bookId) {
             </div>
         </div>`;
 
+    /* Form ulasan hanya untuk user biasa yang sudah login */
     if (session && !session.isAdmin) {
         const existingReview = reviews.find(r => r.userId === session.userId);
         html += `<div class="review-form-container" id="reviewFormContainer">
@@ -316,6 +356,13 @@ function renderReviewsList(bookId) {
                         <span class="review-date">${r.date}</span>
                     </div>
                     <p>${r.comment}</p>
+                    ${r.adminReply ? `
+                        <div class="review-admin-reply">
+                            <div class="admin-reply-badge"><i class="fa-solid fa-shield-halved"></i> Balasan Admin</div>
+                            <p>${r.adminReply.text}</p>
+                            <span class="admin-reply-date">${r.adminReply.date}</span>
+                        </div>
+                    ` : ''}
                 </div>
             </div>`;
         });
@@ -326,6 +373,83 @@ function renderReviewsList(bookId) {
     return html;
 }
 
+/* NEW: Helper untuk mencari review berdasarkan ID */
+function findReviewById(reviewId) {
+    const reviews = getReviews();
+    for (const bookId in reviews) {
+        const review = reviews[bookId].find(r => r.id === reviewId);
+        if (review) return { review, bookId };
+    }
+    return null;
+}
+
+/* FIX: Tambah penanganan kalau review tidak ditemukan */
+function openReplyModal(reviewId) {
+    if (!reviewId || reviewId === 'undefined') {
+        showToast('ID ulasan tidak valid. Coba refresh halaman.', 'error');
+        return;
+    }
+
+    const found = findReviewById(reviewId);
+    if (!found) {
+        showToast('Ulasan tidak ditemukan. Coba refresh halaman.', 'error');
+        return;
+    }
+
+    const { review } = found;
+
+    document.getElementById('replyReviewId').value = reviewId;
+    document.getElementById('replyOriginalReview').innerHTML = `
+        <div class="reply-original-box">
+            <div class="reply-original-header">
+                <strong>${review.userName}</strong>
+                <span>${'<i class="fa-solid fa-star" style="color:#f1c40f;font-size:0.7rem;"></i>'.repeat(review.rating)}${'<i class="fa-solid fa-star" style="color:#ddd;font-size:0.7rem;"></i>'.repeat(5 - review.rating)}</span>
+            </div>
+            <p>${review.comment}</p>
+        </div>
+    `;
+    document.getElementById('replyAdminText').value = review.adminReply ? review.adminReply.text : '';
+
+    openModal('replyReviewModal');
+}
+/* FIX: Langsung cari dan edit di object reviews yang sama, lalu simpan */
+function submitAdminReply() {
+    const reviewId = document.getElementById('replyReviewId').value;
+    const replyText = document.getElementById('replyAdminText').value.trim();
+
+    if (!replyText) {
+        showToast('Tulis balasan terlebih dahulu', 'warning');
+        return;
+    }
+
+    const reviews = getReviews();
+    let found = false;
+
+    // Cari review langsung di object reviews, bukan pakai findReviewById
+    for (const bookId in reviews) {
+        const review = reviews[bookId].find(r => r.id === reviewId);
+        if (review) {
+            review.adminReply = {
+                text: replyText,
+                date: new Date().toLocaleDateString('id-ID'),
+                adminName: 'Administrator'
+            };
+            found = true;
+            break;
+        }
+    }
+
+    if (found) {
+        saveReviews(reviews);
+        sfx.success();
+        showToast('Balasan berhasil dikirim!', 'success');
+        closeModal('replyReviewModal');
+        renderAdminReviews();
+    } else {
+        sfx.error();
+        showToast('Ulasan tidak ditemukan', 'error');
+    }
+}
 // ==========================================
 // BOOK CONTENT GENERATOR (Baca Buku)
 // ==========================================
@@ -613,13 +737,12 @@ function open3DBook(bookId) {
 window.close3DModal = () => { const modal = document.getElementById('modal3DOverlay'); if (modal) modal.classList.remove('active'); document.body.style.overflow = ''; };
 
 // ==========================================
-// DETAIL BUKU MODAL (Updated with View Count & Reviews)
+// DETAIL BUKU MODAL
 // ==========================================
 function showBookDetail(bookId) {
     sfx.click(); 
     const books = getBooks(); const book = books.find(b => b.id === bookId); if (!book) return;
     
-    // Increment View Count
     const viewCount = incrementView(bookId);
 
     const catClass = 'cat-' + book.category.toLowerCase(); const coverSrc = getBookCoverSrc(book, 'L'); const isAvailable = book.status === 'Tersedia';
@@ -669,7 +792,7 @@ function showBookDetail(bookId) {
 }
 
 // ==========================================
-// RENDER CARD BUKU (Updated with View Count)
+// RENDER CARD BUKU
 // ==========================================
 function renderBookCard(book) {
     const coverSrc = getBookCoverSrc(book, 'M'); const catClass = 'cat-' + book.category.toLowerCase();
@@ -707,7 +830,7 @@ function renderBookCard(book) {
 }
 
 // ==========================================
-// BANNER SLIDER / PAPAN IKLAN (FITUR BARU)
+// BANNER SLIDER / PAPAN IKLAN
 // ==========================================
 const BANNER_DATA = [
     { img: 'li.jpg', tag: 'Layanan Baru', title: 'Pustaka Cakra Digital', desc: 'Akses banyak buku dari perangkat apa saja, kapan saja. Baca langsung dari browser!' },
@@ -942,13 +1065,16 @@ function initAdmin() {
     }
 }
 
+/* CHANGED: renderAdminDashboard sekarang memanggil renderAdminReviews */
 function renderAdminDashboard() {
     renderAdminStats();
     renderAdminChart();
     renderAdminRequests();
     renderAdminBookTable();
     renderAdminBorrowTable();
+    renderAdminReviews(); // NEW: render kelola ulasan
     initAddBookForm();
+    initReplyForm(); // NEW: init form balas ulasan
 }
 
 function renderAdminStats() {
@@ -971,21 +1097,94 @@ function renderAdminStats() {
     }
 }
 
+/* NEW: Helper untuk parse tanggal peminjaman (format DD/MM/YYYY) */
+function parseBorrowDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
+        const year = parseInt(parts[2]);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            return { month, year };
+        }
+    }
+    return null;
+}
+
+/* CHANGED: renderAdminChart sekarang menampilkan grafik peminjaman per bulan */
 function renderAdminChart() {
-    const canvas = document.getElementById('borrowChart'); if (!canvas) return;
-    const ctx = canvas.getContext('2d'); const borrows = getBorrows(); const books = getBooks();
-    const categories = [...new Set(books.map(b => b.category))];
-    const data = categories.map(cat => { const bookIds = books.filter(b => b.category === cat).map(b => b.id); return borrows.filter(b => bookIds.includes(b.bookId)).length; });
+    const canvas = document.getElementById('borrowChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const borrows = getBorrows();
+    
+    const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+    const currentYear = new Date().getFullYear();
+    
+    // Hitung peminjaman per bulan untuk tahun berjalan
+    const monthCounts = new Array(12).fill(0);
+    
+    borrows.forEach(b => {
+        const parsed = parseBorrowDate(b.borrowDate);
+        if (parsed && parsed.year === currentYear) {
+            monthCounts[parsed.month - 1]++;
+        }
+    });
     
     if (window.borrowChartInstance) window.borrowChartInstance.destroy();
 
     window.borrowChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: categories,
-            datasets: [{ label: 'Jumlah Peminjaman', data: data, backgroundColor: 'rgba(45, 74, 62, 0.7)', borderColor: 'rgba(45, 74, 62, 1)', borderWidth: 1, borderRadius: 5 }]
+            labels: MONTH_NAMES,
+            datasets: [{
+                label: 'Peminjaman',
+                data: monthCounts,
+                backgroundColor: 'rgba(45, 74, 62, 0.6)',
+                borderColor: 'rgba(45, 74, 62, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                maxBarThickness: 36
+            }]
         },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, font: { family: 'Inter', size: 11 }, color: '#5a6a6a' },
+                    grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter', size: 11 }, color: '#5a6a6a' }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: `Statistik Peminjaman Tahun ${currentYear}`,
+                    font: { family: 'Poppins', size: 14, weight: '600' },
+                    color: '#1a2a2a',
+                    padding: { bottom: 20 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(26,42,42,0.9)',
+                    titleFont: { family: 'Poppins', weight: '600' },
+                    bodyFont: { family: 'Inter' },
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y} peminjaman`;
+                        }
+                    }
+                }
+            }
+        }
     });
 }
 
@@ -1087,9 +1286,81 @@ function renderAdminBorrowTable() {
     }
 }
 
+/* NEW: renderAdminReviews — menampilkan semua ulasan di panel admin */
+function renderAdminReviews() {
+    const reviews = getReviews();
+    const books = getBooks();
+    const tbody = document.getElementById('adminReviewBody');
+    const badge = document.getElementById('totalReviewsBadge');
+
+    if (!tbody) return;
+
+    // Kumpulkan semua ulasan dari semua buku
+    let allReviews = [];
+    for (const bookId in reviews) {
+        const book = books.find(b => b.id === parseInt(bookId));
+        reviews[bookId].forEach(r => {
+            allReviews.push({
+                ...r,
+                bookId: parseInt(bookId),
+                bookTitle: book ? book.title : 'Buku tidak ditemukan'
+            });
+        });
+    }
+
+    if (badge) badge.textContent = `${allReviews.length} ulasan`;
+
+    if (allReviews.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">Belum ada ulasan dari pengguna</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = allReviews.slice().reverse().map(r => {
+        const starsHtml = '<i class="fa-solid fa-star" style="color:#f1c40f;font-size:0.7rem;"></i>'.repeat(r.rating) +
+                          '<i class="fa-solid fa-star" style="color:#ddd;font-size:0.7rem;"></i>'.repeat(5 - r.rating);
+        const replyStatus = r.adminReply
+            ? `<span style="color:var(--success);font-size:0.8rem;"><i class="fa-solid fa-check-circle"></i> ${r.adminReply.text.length > 30 ? r.adminReply.text.substring(0, 30) + '...' : r.adminReply.text}</span>`
+            : `<span style="color:var(--text-muted);font-size:0.8rem;">Belum dibalas</span>`;
+
+        return `
+            <tr>
+                <td style="max-width:150px;"><strong style="font-size:0.85rem;">${r.bookTitle}</strong></td>
+                <td>${r.userName}</td>
+                <td>${starsHtml}</td>
+                <td style="max-width:200px;font-size:0.85rem;color:var(--text-muted);">${r.comment.length > 60 ? r.comment.substring(0, 60) + '...' : r.comment}</td>
+                <td style="white-space:nowrap;font-size:0.8rem;">${r.date}</td>
+                <td>${replyStatus}</td>
+                <td class="actions">
+                    <button class="btn btn-sm btn-outline" onclick="openReplyModal('${r.id}'); sfx.click();">
+                        <i class="fa-solid fa-reply"></i> ${r.adminReply ? 'Edit' : 'Balas'}
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+/* FIX: Pastikan form listener dipasang ulang setiap render dashboard */
+function initReplyForm() {
+    const form = document.getElementById('replyReviewForm');
+    if (!form) return;
+
+    // Hapus listener lama dengan clone node, lalu pasang baru
+    const newForm = form.cloneNode(true);
+    form.parentNode.replaceChild(newForm, form);
+
+    newForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        submitAdminReply();
+    });
+}
+
 function initAddBookForm() {
     const form = document.getElementById('addBookForm');
     if (!form) return;
+    if (form.dataset.listenerAdded) return;
+    form.dataset.listenerAdded = 'true';
+
     form.addEventListener('submit', (e) => {
         e.preventDefault(); sfx.click();
         const title = document.getElementById('addTitle').value.trim();
@@ -1174,7 +1445,7 @@ function deleteBook(bookId) {
 // SCROLL REVEAL ANIMATION & GLOBAL SFX
 // ==========================================
 function initScrollReveal() {
-    const observer = new IntersectionObserver((entries) => {
+        const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('[data-reveal]').forEach(el => { el.classList.add('reveal'); observer.observe(el); });
