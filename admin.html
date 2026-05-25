@@ -69,10 +69,10 @@
             <!-- Stats -->
             <div class="admin-stats" id="adminStats"></div>
 
-            <!-- Chart Section -->
+            <!-- Chart Section — CHANGED: judul dari "per Kategori" jadi "per Bulan" -->
             <div class="admin-card" data-reveal>
                 <div class="admin-card-header">
-                    <h3><i class="fa-solid fa-chart-line"></i> Statistik Peminjaman per Kategori</h3>
+                    <h3><i class="fa-solid fa-chart-line"></i> Statistik Peminjaman per Bulan</h3>
                 </div>
                 <div style="position:relative; height:300px; width:100%;">
                     <canvas id="borrowChart"></canvas>
@@ -194,6 +194,30 @@
                     </table>
                 </div>
             </div>
+
+            <!-- NEW: Kelola Ulasan / Review Management -->
+            <div class="admin-card" data-reveal>
+                <div class="admin-card-header">
+                    <h3><i class="fa-solid fa-comments"></i> Kelola Ulasan</h3>
+                    <span class="badge badge-info" id="totalReviewsBadge">0 ulasan</span>
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="adminReviewTable">
+                        <thead>
+                            <tr>
+                                <th>Buku</th>
+                                <th>Pengguna</th>
+                                <th>Rating</th>
+                                <th>Ulasan</th>
+                                <th>Tanggal</th>
+                                <th>Balasan Admin</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminReviewBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -247,6 +271,32 @@
                         <button type="button" class="btn btn-outline" onclick="closeModal('editBookModal'); sfx.click();">Batal</button>
                         <button type="submit" class="btn btn-primary" onclick="sfx.click()">
                             <i class="fa-solid fa-save"></i> Simpan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Reply Review Modal -->
+    <div class="modal-overlay" id="replyReviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-reply"></i> Balas Ulasan</h3>
+                <button class="modal-close" onclick="closeModal('replyReviewModal'); sfx.click();">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="reply-original-review" id="replyOriginalReview"></div>
+                <form id="replyReviewForm" class="admin-form">
+                    <input type="hidden" id="replyReviewId">
+                    <div class="form-group">
+                        <label for="replyAdminText">Balasan Admin</label>
+                        <textarea id="replyAdminText" rows="4" placeholder="Tulis balasan untuk ulasan ini..." required style="width:100%;padding:0.75rem 0.875rem;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.9rem;background:var(--bg);color:var(--text);resize:vertical;"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('replyReviewModal'); sfx.click();">Batal</button>
+                        <button type="submit" class="btn btn-primary" onclick="sfx.click()">
+                            <i class="fa-solid fa-paper-plane"></i> Kirim Balasan
                         </button>
                     </div>
                 </form>
